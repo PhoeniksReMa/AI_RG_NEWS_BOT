@@ -125,11 +125,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60,
         "options": {"queue": "celery", "routing_key": "celery"},
     },
-    # "fetch_and_publish_every_3h": {
-    #     "task": "app.fetch_and_publish_every_3h",
-    #     "schedule": 60,
-    #     "options": {"queue": "celery", "routing_key": "celery"},
-    # },
+    "fetch_and_publish_every_3h": {
+        "task": "app.fetch_and_publish_every_3h",
+        "schedule": 60,
+        "options": {"queue": "celery", "routing_key": "celery"},
+    },
 }
 
 STATIC_URL = "/static/"
