@@ -17,7 +17,6 @@ class NewsMedia(BaseModel):
     type: Literal["video", "image", "none"]
     mime_type: Optional[str] = None
     file_url: Optional[str] = None
-    file_thumbnail_url: Optional[str] = None
 
 
 class NewsResult(BaseModel):

@@ -6,7 +6,7 @@ import httpx
 from django.db import transaction
 from .openai_client import generate_post_from_open_ai
 
-from .models import Theme, Channel
+from .models import Theme, SourceChannel, TargetChannel
 
 from dotenv import load_dotenv
 
@@ -50,19 +50,21 @@ def refresh_tops_for_all_themes():
     client = TGStatClient()
 
     # берём именно коды тем (строки), а не объекты
-    theme_codes = list(Theme.objects.values_list("code", flat=True))
+    themes = Theme.objects.all()
 
-    for code in theme_codes:
+    for theme in themes:
+        code=theme.code
         items = client.search_channels(code, limit=100) or []
         top_channels = sorted(items, key=lambda x: x.get("ci_index") or 0, reverse=True)[:TOP_K]
 
-        to_create: List[Channel] = []
+        to_create: List[SourceChannel] = []
         usernames: List[str] = []
 
         for item in top_channels[:TOP_K]:
             usernames.append((item.get("username") or "").lstrip("@"))
             to_create.append(
-                Channel(
+                SourceChannel(
+                    theme = theme,
                     tgstat_id=item.get("id"),
                     tg_id=item.get("tg_id"),
                     link=item.get("link"),
@@ -78,11 +80,11 @@ def refresh_tops_for_all_themes():
             )
 
         if to_create:
-            Channel.objects.all().delete()
-            Channel.objects.bulk_create(to_create, ignore_conflicts=True)
+            SourceChannel.objects.filter(theme=theme).delete()
+            SourceChannel.objects.bulk_create(to_create, ignore_conflicts=True)
 
     return list(
-                Channel.objects.all()
+                SourceChannel.objects.all()
                 .values(
                     "id", "tgstat_id", "tg_id", "link", "peer_type", "username",
                     "title", "about", "image100", "image640",
@@ -90,10 +92,10 @@ def refresh_tops_for_all_themes():
                 )
             )
 
-def fetch_recent_posts_for_top():
+def fetch_recent_posts_for_top(theme):
     client = TGStatClient()
 
-    objects = Channel.objects.all()
+    objects = SourceChannel.objects.filter(theme=theme.id)
     posts_from_chanels = []
     for channel in objects:
         start_time = (datetime.now() + timedelta(hours=3))

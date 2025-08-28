@@ -9,6 +9,7 @@
 #     refresh_tops_for_all_themes,
 #     fetch_recent_posts_for_top,
 # )
+# from .models import Theme
 #
 #
 # @csrf_exempt
@@ -23,9 +24,12 @@
 # @csrf_exempt
 # @require_GET
 # def generate_posts_view(request):
-#     data = fetch_recent_posts_for_top()
-#     send_text(data)
+#     json = []
+#     for theme in Theme.objects.all():
+#         data = fetch_recent_posts_for_top(theme)
+#         send_text(data, theme)
+#         json.append(data)
 #     return JsonResponse(
-#         data, safe=False,
+#         json, safe=False,
 #         json_dumps_params={"ensure_ascii": False, "indent": 2}
 #     )
