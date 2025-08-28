@@ -5,7 +5,6 @@ from aiogram.utils.media_group import MediaGroupBuilder
 from .models import Theme, TargetChannel
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_TARGET_CHAT_ID = int(os.getenv("TELEGRAM_TARGET_CHAT_ID", "0"))
 
 async def _send_text_async(data: dict, chat_id, parse_mode: str | None = "Markdown"):
     bot = Bot(token=TELEGRAM_BOT_TOKEN)

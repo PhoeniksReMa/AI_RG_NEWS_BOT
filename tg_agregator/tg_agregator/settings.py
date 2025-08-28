@@ -122,12 +122,12 @@ CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_BEAT_SCHEDULE = {
     "refresh_tops_daily": {
         "task": "app.refresh_tops_daily",
-        "schedule": 60,
+        "schedule": 60*60*24,
         "options": {"queue": "celery", "routing_key": "celery"},
     },
     "fetch_and_publish_every_3h": {
         "task": "app.fetch_and_publish_every_3h",
-        "schedule": 60,
+        "schedule": 60*60*3,
         "options": {"queue": "celery", "routing_key": "celery"},
     },
 }

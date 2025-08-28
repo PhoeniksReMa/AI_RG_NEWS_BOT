@@ -60,7 +60,7 @@ def refresh_tops_for_all_themes():
         to_create: List[SourceChannel] = []
         usernames: List[str] = []
 
-        for item in top_channels[:TOP_K]:
+        for item in top_channels[:theme.channel_count]:
             usernames.append((item.get("username") or "").lstrip("@"))
             to_create.append(
                 SourceChannel(
