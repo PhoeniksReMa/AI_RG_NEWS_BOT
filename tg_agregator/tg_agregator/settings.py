@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlparse
+from datetime import timedelta
 
 load_dotenv()
 
@@ -122,12 +123,12 @@ CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_BEAT_SCHEDULE = {
     "refresh_tops_daily": {
         "task": "app.refresh_tops_daily",
-        "schedule": 60*60*24,
+        "schedule": timedelta(days=1),
         "options": {"queue": "celery", "routing_key": "celery"},
     },
     "fetch_and_publish_every_3h": {
         "task": "app.fetch_and_publish_every_3h",
-        "schedule": 60*60*3,
+        "schedule": timedelta(hours=3),
         "options": {"queue": "celery", "routing_key": "celery"},
     },
 }
