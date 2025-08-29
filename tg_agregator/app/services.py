@@ -98,7 +98,7 @@ def fetch_recent_posts_for_top(theme):
     objects = SourceChannel.objects.filter(theme=theme.id)
     posts_from_chanels = []
     for channel in objects:
-        start_time = (datetime.now() + timedelta(hours=3))
+        start_time = (datetime.now() - timedelta(hours=3))
         posts = client.get_posts(channel.tg_id, start_time=start_time)
         posts_from_chanels.append([post for post in posts])
 
