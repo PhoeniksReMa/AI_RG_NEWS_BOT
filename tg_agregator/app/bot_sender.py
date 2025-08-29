@@ -2,7 +2,7 @@ import asyncio
 import os
 from aiogram import Bot
 from aiogram.utils.media_group import MediaGroupBuilder
-from .models import Theme, TargetChannel
+from .models import TargetChannel, GeneratePost
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -22,6 +22,7 @@ async def _send_text_async(data: dict, chat_id, parse_mode: str | None = "Markdo
             continue
     try:
         await bot.send_media_group(chat_id=chat_id, media=mg.build())
+        GeneratePost.objects.create(text=text)
     finally:
         await bot.session.close()
 

@@ -2,6 +2,7 @@ import json
 from openai import OpenAI
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
+from .models import GeneratePost
 
 client = OpenAI()
 
@@ -46,16 +47,19 @@ def generate_post_from_open_ai(posts_groups: list[list[dict]]) -> dict:
         "- mode: 'single' (лучший один пост) или 'combined' (объединение 2–4 постов).\n"
         "- Критерии отбора: свежесть (date), значимость (views), фактическая насыщенность, отсутствие дублей.\n"
         "- Рерайт: нейтрально и сжато (2–5 предложений или короткий список), HTML → Markdown, убрать рекламные хвосты типа «Подписаться…».\n"
-        "- Ссылки сохраняй в Markdown. Медиа: предпочитай file_url, если пусто — file_thumbnail_url.\n"
+        "- Ссылки сохраняй в Markdown. Медиа: file_url\n"
+        "- Не повторяй предыдущие посты, если в них нет новых данных \n"
         "Ответ верни ТОЛЬКО вызовом функции emit_news (без обычного текста)."
     )
 
     # при желании можно подсократить вход (например, выкинуть большие поля), но здесь шлём как есть:
     payload_str = json.dumps(posts_groups, ensure_ascii=False)
+    last_posts_objects = GeneratePost.objects.all().order_by('-created_at')[:5]
+    last_posts = [i.text for i in last_posts_objects]
 
     messages = [
         {"role": "system", "content": "Отвечай строго вызовом функции emit_news с корректным JSON."},
-        {"role": "user", "content": f"{guidelines}\n\nВходные данные JSON:\n```json\n{payload_str}\n```"}
+        {"role": "user", "content": f"{guidelines}\n\nВходные данные JSON:\n```json\n{payload_str}\n```\n\nПредыдущие посты: {last_posts} "}
     ]
 
     # 3) Вызов Chat Completions с tools
