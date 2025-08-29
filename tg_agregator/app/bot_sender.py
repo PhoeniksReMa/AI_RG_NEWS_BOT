@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 @sync_to_async
-def create_generated_post(text: str) -> None:
-    GeneratePost.objects.create(text=text)
+def create_generated_post(text: str, theme) -> None:
+    GeneratePost.objects.create(text=text, theme=theme)
 
-async def _send_text_async(data: dict, chat_id, parse_mode: str | None = "Markdown"):
+async def _send_text_async(data: dict, chat_id, theme, parse_mode: str | None = "Markdown"):
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
     text=data.get('text')
     medias = data.get('media')
@@ -36,7 +36,7 @@ async def _send_text_async(data: dict, chat_id, parse_mode: str | None = "Markdo
                 continue
         try:
             await bot.send_media_group(chat_id=chat_id, media=mg.build())
-            await create_generated_post(text=text)
+            await create_generated_post(text=text, theme=theme)
         finally:
             await bot.session.close()
 
@@ -45,5 +45,5 @@ def send_text(data: dict, theme,  parse_mode: str | None = "Markdown"):
     telegram_id_chat = [i.tg_id for i in telegram_target_chat]
     logger.info(f'send_text: {data}')
     for chat_id in telegram_id_chat:
-        asyncio.run(_send_text_async(data=data, parse_mode=parse_mode, chat_id=chat_id))
+        asyncio.run(_send_text_async(data=data, parse_mode=parse_mode, chat_id=chat_id, theme=theme))
     return True

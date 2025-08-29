@@ -36,7 +36,7 @@ class NewsPost(BaseModel):
     reason: str
     result: NewsResult
 
-def generate_post_from_open_ai(posts_groups: list[list[dict]]) -> dict:
+def generate_post_from_open_ai(posts_groups: list[list[dict]], theme) -> dict:
     """
     На вход: массив групп постов (как в вашем примере).
     На выход: строго типизированный dict с итоговой новостью/сводкой.
@@ -56,8 +56,8 @@ def generate_post_from_open_ai(posts_groups: list[list[dict]]) -> dict:
 
     # при желании можно подсократить вход (например, выкинуть большие поля), но здесь шлём как есть:
     payload_str = json.dumps(posts_groups, ensure_ascii=False)
-    last_posts_objects = GeneratePost.objects.all().order_by('created_at')[:3]
-    logger.info(f'last_posts_objects: {last_posts_objects}')
+    last_posts_objects = GeneratePost.objects.filter(theme=theme).order_by('-created_at')[:3]
+
     last_posts = [i.text for i in last_posts_objects]
 
     messages = [

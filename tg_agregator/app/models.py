@@ -47,6 +47,7 @@ class TargetChannel(models.Model):
 
 class GeneratePost(models.Model):
     text = models.TextField()
+    theme = models.ForeignKey(Theme, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return self.text

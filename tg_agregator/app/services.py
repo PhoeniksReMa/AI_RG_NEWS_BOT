@@ -106,7 +106,7 @@ def fetch_recent_posts_for_top(theme):
         posts = client.get_posts(channel.tg_id, start_time=start_time)
         posts_from_chanels.append([post for post in posts])
 
-    generate_json = generate_post_from_open_ai(posts_from_chanels)
+    generate_json = generate_post_from_open_ai(posts_from_chanels, theme)
     result = generate_json.get("result")
     text_markdown = result.get("text_markdown")
     media = result.get("media")
