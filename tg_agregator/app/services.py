@@ -96,6 +96,10 @@ def fetch_recent_posts_for_top(theme):
     client = TGStatClient()
 
     objects = SourceChannel.objects.filter(theme=theme.id)
+    if not objects:
+        refresh_tops_for_all_themes()
+        objects = SourceChannel.objects.filter(theme=theme.id)
+
     posts_from_chanels = []
     for channel in objects:
         start_time = (datetime.now() - timedelta(hours=3))
