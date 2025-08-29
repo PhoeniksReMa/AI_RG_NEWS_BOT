@@ -15,19 +15,25 @@ async def _send_text_async(data: dict, chat_id, parse_mode: str | None = "Markdo
     medias = data.get('media')
     mg = MediaGroupBuilder(caption=text)
 
-    for media in medias:
-        type = media.get("type")
-        if type == "image":
-            mg.add_photo(media=media.get('file_url'), parse_mode=parse_mode)
-        elif type == "video":
-            mg.add_video(media=media.get('file_url'), parse_mode=parse_mode)
-        else:
-            continue
-    try:
-        await bot.send_media_group(chat_id=chat_id, media=mg.build())
-        GeneratePost.objects.create(text=text)
-    finally:
-        await bot.session.close()
+    if not medias:
+        try:
+            await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
+        finally:
+            await bot.session.close()
+    else:
+        for media in medias:
+            type = media.get("type")
+            if type == "image":
+                mg.add_photo(media=media.get('file_url'), parse_mode=parse_mode)
+            elif type == "video":
+                mg.add_video(media=media.get('file_url'), parse_mode=parse_mode)
+            else:
+                continue
+        try:
+            await bot.send_media_group(chat_id=chat_id, media=mg.build())
+            GeneratePost.objects.create(text=text)
+        finally:
+            await bot.session.close()
 
 def send_text(data: dict, theme,  parse_mode: str | None = "Markdown"):
     telegram_target_chat = TargetChannel.objects.filter(theme=theme)
