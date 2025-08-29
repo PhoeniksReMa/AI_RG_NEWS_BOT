@@ -3,7 +3,9 @@ from openai import OpenAI
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 from .models import GeneratePost
+import logging
 
+logger = logging.getLogger(__name__)
 client = OpenAI()
 
 class NewsSource(BaseModel):
@@ -54,7 +56,8 @@ def generate_post_from_open_ai(posts_groups: list[list[dict]]) -> dict:
 
     # при желании можно подсократить вход (например, выкинуть большие поля), но здесь шлём как есть:
     payload_str = json.dumps(posts_groups, ensure_ascii=False)
-    last_posts_objects = GeneratePost.objects.all().order_by('created_at')[:5]
+    last_posts_objects = GeneratePost.objects.all().order_by('created_at')[:3]
+    logger.info(f'last_posts_objects: {last_posts_objects}')
     last_posts = [i.text for i in last_posts_objects]
 
     messages = [
