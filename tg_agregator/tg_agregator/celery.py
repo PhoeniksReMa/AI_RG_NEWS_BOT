@@ -1,5 +1,5 @@
 import os
-from celery import Celery
+from celery import Celery, signals
 from kombu import Exchange, Queue
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tg_agregator.settings")
@@ -15,3 +15,7 @@ CELERY_TASK_ROUTES = {"app.*": {"queue": "celery", "routing_key": "celery"}}
 
 CELERY_WORKER_REDIRECT_STDOUTS = True
 CELERY_WORKER_REDIRECT_STDOUTS_LEVEL = "INFO"
+
+@signals.worker_ready.connect
+def at_start(sender, **kwargs):
+    sender.app.send_task("app.fetch_and_publish_every_3h")
