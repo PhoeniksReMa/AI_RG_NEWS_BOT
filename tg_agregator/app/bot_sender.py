@@ -3,6 +3,9 @@ import os
 from aiogram import Bot
 from aiogram.utils.media_group import MediaGroupBuilder
 from .models import TargetChannel, GeneratePost
+import logging
+
+logger = logging.getLogger(__name__)
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -29,6 +32,7 @@ async def _send_text_async(data: dict, chat_id, parse_mode: str | None = "Markdo
 def send_text(data: dict, theme,  parse_mode: str | None = "Markdown"):
     telegram_target_chat = TargetChannel.objects.filter(theme=theme)
     telegram_id_chat = [i.tg_id for i in telegram_target_chat]
+    logger.info(f'send_text: {data}')
     for chat_id in telegram_id_chat:
         asyncio.run(_send_text_async(data=data, parse_mode=parse_mode, chat_id=chat_id))
     return True
