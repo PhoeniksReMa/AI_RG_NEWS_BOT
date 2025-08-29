@@ -23,12 +23,15 @@ async def _send_text_async(
     parse_mode: Optional[str] = "Markdown",
 ) -> List[Message]:
     """
-    Отправляет текст и (при наличии) медиагруппу.
-    Фильтрует мусорные медиа: без file_url или с type не из {"image", "video"}.
+    Отправляет текст и медиа:
+    - фильтрует мусорные медиа (без file_url или с type не из {"image", "video"});
+    - 0 медиа -> send_message;
+    - 1 медиа -> send_photo/send_video с caption;
+    - 2+ медиа -> send_media_group (caption на первый элемент).
     Возвращает список отправленных сообщений.
     """
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
-    sent_messages: List[Message] = []
+    sent: List[Message] = []
 
     text: str = data.get("text") or ""
     medias: list = data.get("media") or []
@@ -40,43 +43,43 @@ async def _send_text_async(
     ]
 
     try:
-        # Если валидных медиа нет — отправляем просто текст
-        if not valid_medias:
+        # 0 медиа -> просто текст
+        if len(valid_medias) == 0:
             msg = await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
-            sent_messages.append(msg)
-
+            sent.append(msg)
+            # если нужно логировать/сохранять и для текстов:
             await create_generated_post(text=text, theme=theme)
+            return sent
 
-            return sent_messages
-
-        # Есть валидные медиа — собираем медиагруппу
-        mg = MediaGroupBuilder(caption=text)
-        for media in valid_medias:
-            kind = media.get("type")
-            file_url = media.get("file_url")
+        # 1 медиа -> отправляем отдельным сообщением
+        if len(valid_medias) == 1:
+            media = valid_medias[0]
+            file_url = media["file_url"]
+            kind = media["type"]
 
             if kind == "image":
+                msg = await bot.send_photo(chat_id=chat_id, photo=file_url, caption=text, parse_mode=parse_mode)
+            else:  # "video"
+                msg = await bot.send_video(chat_id=chat_id, video=file_url, caption=text, parse_mode=parse_mode)
+
+            sent.append(msg)
+            await create_generated_post(text=text, theme=theme)
+            return sent
+
+        # 2+ медиа -> медиагруппа
+        mg = MediaGroupBuilder(caption=text)
+        for m in valid_medias:
+            file_url = m["file_url"]
+            kind = m["type"]
+            if kind == "image":
                 mg.add_photo(media=file_url, parse_mode=parse_mode)
-            elif kind == "video":
+            else:
                 mg.add_video(media=file_url, parse_mode=parse_mode)
 
-        # На всякий случай проверим, что не получилось пусто
-        if mg.count() == 0:
-            # fallback на текст
-            msg = await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
-            sent_messages.append(msg)
-
-            await create_generated_post(text=text, theme=theme)
-
-            return sent_messages
-
-        # Отправляем медиагруппу (вернётся список Message)
         group_msgs = await bot.send_media_group(chat_id=chat_id, media=mg.build())
-        sent_messages.extend(group_msgs)
-
+        sent.extend(group_msgs)
         await create_generated_post(text=text, theme=theme)
-
-        return sent_messages
+        return sent
 
     finally:
         await bot.session.close()
